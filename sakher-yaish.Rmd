@@ -1,0 +1,226 @@
+---
+title: "CS 422"
+author: "Vijay K. Gurbani, Ph.D., Illinois Institute of Technology"
+output:
+  html_document:
+    toc: yes
+    df_print: paged
+  html_notebook: 
+    toc: yes
+    toc_float: yes
+---
+
+<!-- More information in R Markdown can be found at:
+1. https://www.ssc.wisc.edu/sscc/pubs/RFR/RFR_RMarkdown.html  This is 
+   the place to start since it is a short tutorial.
+2. https://rmarkdown.rstudio.com/index.html This contains a longer 
+   tutorial.  Take a look at the cheatsheet in 
+   https://rmarkdown.rstudio.com/lesson-15.html, it is a concise 
+   reference of R Markdown on two pages.
+<-->
+
+```{r}
+setwd("C:/Users/sakhe/Desktop/CS/CS422")
+
+```
+
+
+
+```{r}
+library(ISLR)
+df <- data("Auto")
+
+set.seed(1122)
+index <- sample(1:nrow(Auto), 0.95 * dim(Auto)[1])
+train.df <- Auto[index, ]
+test.df <- Auto[-index, ]
+train.df
+```
+
+## Part (a)
+
+```{r}
+model <- lm(mpg ~ . - name, data = train.df)
+
+```
+## Part (a)i
+```{r}
+cat(
+  paste("Because the name predictor does nothing to affect the mpg of\n"),
+  paste("an engine. Therefore, it is unreasonable for us to include\n"),
+  paste("it as a predictor.")
+  )
+
+
+```
+
+
+## Part (a)ii
+
+```{r}
+summary(model)
+
+r_squared <- summary(model)$r.squared
+adj_r_squared <- summary(model)$adj.r.squared
+RSS  <- sum((train.df$mpg - model$fit)^2)
+n <- dim(train.df)[1]
+p <- dim(train.df)[2] - 2
+RSE  <- sqrt(1/(n-p-1)*RSS)
+RSME <- sqrt(RSS / n)
+
+cat(
+  paste("R-sq value is", r_squared,"\n"),
+  paste("Adjusted R-sq value is", adj_r_squared,"\n"),
+  paste("RSE is " , RSE, "\n"),
+  paste("RSME is ", RSME)
+)
+
+
+```
+
+
+
+## Part (a)iii
+```{r}
+plot(model, 1)
+```
+
+
+## Part (a)iv
+```{r}
+hist(model$residuals, xlab = "Model Residuals", 
+     main="Advertising Residual Histogram")
+x <- -10:10
+lines(x, 800*dnorm(x, 0, sd(model$residuals)), col=2)
+
+cat(
+  paste("The histogram looks like a gaussian distribution.")
+)
+
+```
+
+
+
+## Part (b)i
+
+```{r}
+
+new_model <- lm(mpg ~ year+weight+origin, data = train.df)
+
+
+```
+## Part (b)ii
+```{r}
+summary(new_model)
+```
+## Part(b)iii
+```{r}
+plot(new_model,1)
+```
+
+## Part(b)iv
+```{r}
+hist(new_model$residuals, xlab = "Model Residuals", 
+     main="Advertising Residual Histogram")
+x <- -10:15
+lines(x, 800*dnorm(x, 0, sd(model$residuals)), col=2)
+
+cat(
+  paste("The histogram does not follow a Gaussian distribution as"),
+  paste("both sides do not look similiar.")
+)
+
+
+
+```
+
+## Part (b)v
+```{r}
+   
+   
+  cat(
+    paste("The summary for the first model has a F-statistic 232.2.\n"),
+    paste("The second model has a F-statistic of 531.8. That signals\n"),
+    paste("that the second model is better.Also, the p-values\n"),
+    paste("for the second model appear to be lower than that\n"),
+    paste("of the first model.")
+  )
+
+
+
+
+```
+
+## Part (c)
+
+```{r}
+
+predictions <- data.frame(predict(new_model, test.df, interval="confidence"))
+results <- data.frame(Prediction = predictions$fit, Response = test.df$mpg, Lower = predictions$lwr, Upper = predictions$upr)
+results
+
+```
+
+## Part (d)
+```{r}
+results$Matches <- apply(results[,c("Lower","Upper","Response")], 1, function(x) {
+  if (x[3] >= x[1] & x[3] <= x[2]) {
+    return (1)
+  } else {
+    return (0)
+  }
+})
+cat("Total observations correctly predicted: ", sum(results$Matches))
+```
+
+## Part (e)
+
+```{r}
+predictions_second <- data.frame(predict(new_model, test.df, interval="prediction"))
+results_second <- data.frame(Prediction = predictions_second$fit, Response = test.df$mpg, Lower = predictions_second$lwr, Upper = predictions_second$upr)
+
+
+results_second$Matches <- apply(results_second[,c("Lower","Upper","Prediction")], 1, function(x) {
+  if (x[3] >= x[1] & x[3] <= x[2]) {
+    return (1)
+  } else {
+    return (0)
+  }
+})
+results_second
+cat("Total observations correctly predicted: ", sum(results$Matches))
+
+
+```
+
+## Part (f)
+```{r}
+cat(
+  paste("Part e had alot more matches than part d. Infact, every row\n"),
+  paste("had a match in part e whereas part d only had 7. Also, the\n"),
+  paste("interval in part e is alot bigger than that of part d.")
+)
+
+```
+
+## Part (f)i
+```{r}
+cat(
+  paste("Part e had more matches.")
+)
+
+```
+
+## Part (f)ii
+```{r}
+cat(
+  paste("The interval in Part e was alot bigger than that of part d.\n")
+)
+
+```
+
+
+
+
+
+)
